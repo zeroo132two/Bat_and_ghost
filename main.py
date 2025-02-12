@@ -59,7 +59,7 @@ quit_lable = lable.render('Выход', False, (0, 0, 0))
 play_lable_rect = play_lable.get_rect(topleft=(320, 140))
 quit_lable_rect = quit_lable.get_rect(topleft=(320, 180))
 
-shots_left = 10
+shots_left = 5
 shot = pygame.image.load('import/shot.png').convert_alpha()
 shots = []
 
@@ -72,6 +72,14 @@ gameplay = True
 out_of_ammo_start = None
 menu = True
 victory = False
+
+
+#препядствия
+obstacles = []  # Список препятствий
+obstacle_timer = pygame.USEREVENT + 3
+pygame.time.set_timer(obstacle_timer, 4000)
+obstacle_image = pygame.image.load('import/cloud.png').convert_alpha()
+
 
 running = True
 while running:
@@ -88,7 +96,8 @@ while running:
             gameplay = True
             score = 0
             lives = 3
-            shots_left = 10
+            shots_left = 5
+            shots.clear()
         if quit_lable_rect.collidepoint(mouse) and pygame.mouse.get_pressed()[0]:
             running = False
             pygame.quit()
@@ -108,6 +117,7 @@ while running:
         if main_menu_rect.collidepoint(mouse) and pygame.mouse.get_pressed()[0]:
             victory = False
             menu = True
+            shots.clear()
 
 
 
@@ -133,19 +143,29 @@ while running:
                 screen.blit(ghost, el)
                 el.x -= 15
 
-                if ghost_health.get(id(el), 1) == 2:
-                    red_overlay = pygame.Surface((el.width, el.height), pygame.SRCALPHA)
-                    red_overlay.fill((255, 0, 0, 100))
-                    screen.blit(red_overlay, el.topleft)
+
 
                 if el.x < -10:
                     ghost_list_in_game.pop(i)
-                    del ghost_health[id(el)]
+
 
                 if player_rect.colliderect(el):
                     ghost_list_in_game.pop(i)
-                    del ghost_health[id(el)]
+
                     lives -= 1
+                    if lives <= 0:
+                        gameplay = False
+        if obstacles:
+            for i, obstacle in enumerate(obstacles):
+                screen.blit(obstacle_image, obstacle)
+                obstacle.x -= 7
+
+                if obstacle.x < -50:
+                    obstacles.pop(i)
+
+                if player_rect.colliderect(obstacle):
+                    lives -= 1
+                    obstacles.pop(i)
                     if lives <= 0:
                         gameplay = False
 
@@ -162,21 +182,11 @@ while running:
                         if el.colliderect(ghost_el):
                             ghost_id = id(ghost_el)
 
-                            if ghost_health[ghost_id] == 2:
-                                ghost_health[ghost_id] = 1
+                            if ghost_el in ghost_list_in_game:
+                                ghost_list_in_game.pop(index)
                                 shots.pop(i)
-                            else:
-                                if ghost_id in ghost_health and ghost_health[ghost_id] == 1:
-                                    if ghost_el in ghost_list_in_game:
-                                        ghost_list_in_game.pop(index)
-                                        del ghost_health[ghost_id]
-                                        shots.pop(i)
-                                        score += 100
-
-                                        if ghost_health.get(ghost_id, 1) == 2:
-                                            shots_left += 2
-                                        else:
-                                            shots_left += 1
+                                score += 100
+                                shots_left += 1
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
@@ -226,7 +236,7 @@ while running:
     else:
         screen.fill((17, 13, 61))
         if shots_left == 0 and out_of_ammo_start is not None:
-            out_of_ammo_text = lable.render('Снаряды закончились, вы проиграли', True, (180, 0, 0))
+            out_of_ammo_text = lable.render('Снаряды кончились,вы проиграли', True, (180, 0, 0))
             screen.blit(out_of_ammo_text, (734 // 2 - out_of_ammo_text.get_width() // 2, 150))
         else:
             screen.blit(lose_lable, (734 // 2 - lose_lable.get_width() // 2, 100))
@@ -240,7 +250,7 @@ while running:
             player_x = 150
             ghost_list_in_game.clear()
             shots.clear()
-            shots_left = 10
+            shots_left = 5
             score = 0
             lives = 3
             out_of_ammo_time = None
@@ -257,9 +267,11 @@ while running:
         if event.type == ghost_timer:
             new_guard = ghost.get_rect(topleft=(740, 210))
             ghost_list_in_game.append(new_guard)
-            ghost_health[id(new_guard)] = random.choice([1, 2])
         if gameplay and event.type == pygame.KEYUP and event.key == pygame.K_q and shots_left > 0:
             shots.append(shot.get_rect(topleft=(player_x + 30, player_y + 10)))
             shots_left -= 1
+        if event.type == obstacle_timer:
+            new_obstacle = obstacle_image.get_rect(topleft=(740, 210))
+            obstacles.append(new_obstacle)
 
     clock.tick(15)
