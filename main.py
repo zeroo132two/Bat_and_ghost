@@ -85,7 +85,7 @@ running = True
 while running:
 
     if menu:
-        screen.fill((124, 180, 216))
+        screen.fill((96, 113, 170))
 
         screen.blit(play_lable, play_lable_rect)
         screen.blit(quit_lable, quit_lable_rect)
@@ -98,13 +98,14 @@ while running:
             lives = 3
             shots_left = 5
             shots.clear()
+            obstacles.clear()
         if quit_lable_rect.collidepoint(mouse) and pygame.mouse.get_pressed()[0]:
             running = False
             pygame.quit()
 
 
     elif victory:
-        screen.fill((17, 13, 61))
+        screen.fill((96, 113, 170))
 
         win_lable = lable.render('Вы победили!', False, (255, 255, 255))
         screen.blit(win_lable, (734 // 2 - win_lable.get_width() // 2, 100))
@@ -118,6 +119,7 @@ while running:
             victory = False
             menu = True
             shots.clear()
+            obstacles.clear()
 
 
 
@@ -234,7 +236,7 @@ while running:
             gameplay = False
             victory = True
     else:
-        screen.fill((17, 13, 61))
+        screen.fill((96, 113, 170))
         if shots_left == 0 and out_of_ammo_start is not None:
             out_of_ammo_text = lable.render('Снаряды кончились,вы проиграли', True, (180, 0, 0))
             screen.blit(out_of_ammo_text, (734 // 2 - out_of_ammo_text.get_width() // 2, 150))
@@ -250,6 +252,7 @@ while running:
             player_x = 150
             ghost_list_in_game.clear()
             shots.clear()
+            obstacles.clear()
             shots_left = 5
             score = 0
             lives = 3
